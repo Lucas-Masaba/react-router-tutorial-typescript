@@ -10,8 +10,12 @@ interface Contact {
 }
 
 const set = async (contacts: Contact[]): Promise<void> => {
-  await localforage.setItem<Contact[]>("contacts", contacts);
+  await localforage.setItem("contacts", contacts);
 };
+
+// fake a cache so we don't slow down stuff we've already seen
+
+let fakeCache: Record<string, boolean> = {};
 
 const fakeNetwork = async (key?: string): Promise<void> => {
   if (key === undefined) {
@@ -24,17 +28,15 @@ const fakeNetwork = async (key?: string): Promise<void> => {
   }
 };
 
-let fakeCache: Record<string, boolean> = {};
-
 export const getContacts = async (query?: string): Promise<Contact[]> => {
   await fakeNetwork(`getContacts:${query ?? ""}`);
-  let contacts: Contact[] = (await localforage.getItem<Contact[]>("contacts")) || [];
+  let contacts: Contact[] = (await localforage.getItem("contacts")) || [];
   if (query) {
-    const options = { keys: ["first", "last"] as (keyof Contact)[] };
-    contacts = matchSorter(contacts, query, options);
+    contacts = matchSorter(contacts, query);
   }
   return contacts.sort(sortBy("last", "createdAt"));
 };
+
 export const createContact = async (): Promise<Contact> => {
   await fakeNetwork();
   const id = Math.random().toString(36).substring(2, 9);
