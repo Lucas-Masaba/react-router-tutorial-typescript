@@ -1,13 +1,28 @@
 import { Outlet, Link, useLoaderData } from "react-router-dom";
 import { getContacts } from "../contacts";
+// import { Contact, ContactData } from "./contact";
 
 export const loader = async () => {
   const contacts = await getContacts();
   return { contacts };
 };
 
+interface Contact {
+  id: string;
+  first: string;
+  last: string;
+  avatar: string | null;
+  twitter: string;
+  notes: string;
+  favorite: boolean;
+}
+
+interface ContactData {
+  contacts: Contact[];
+}
+
 const Root = () => {
-  const { contacts } = useLoaderData();
+  const { contacts } = useLoaderData() as ContactData;
 
   return (
     <>
@@ -32,7 +47,7 @@ const Root = () => {
         <nav>
           {contacts.length ? (
             <ul>
-              {contacts.map((contact) => (
+              {contacts.map((contact: Contact) => (
                 <li key={contact.id}>
                   <Link to={`contacts/${contact.id}`}>
                     {contact.first || contact.last ? (
