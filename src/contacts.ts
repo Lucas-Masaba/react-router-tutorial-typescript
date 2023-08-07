@@ -1,6 +1,5 @@
 import localforage from "localforage";
-/// Match sorter is just terrible with vite
-import matchSorter from "match-sorter";
+import {matchSorter} from "match-sorter";
 import sortBy from "sort-by";
 
 interface Contact {
@@ -11,12 +10,8 @@ interface Contact {
 }
 
 const set = async (contacts: Contact[]): Promise<void> => {
-  await localforage.setItem("contacts", contacts);
+  await localforage.setItem<Contact[]>("contacts", contacts);
 };
-
-// fake a cache so we don't slow down stuff we've already seen
-
-let fakeCache: Record<string, boolean> = {};
 
 const fakeNetwork = async (key?: string): Promise<void> => {
   if (key === undefined) {
@@ -29,15 +24,17 @@ const fakeNetwork = async (key?: string): Promise<void> => {
   }
 };
 
+let fakeCache: Record<string, boolean> = {};
+
 export const getContacts = async (query?: string): Promise<Contact[]> => {
   await fakeNetwork(`getContacts:${query ?? ""}`);
-  let contacts: Contact[] = (await localforage.getItem("contacts")) || [];
+  let contacts: Contact[] = (await localforage.getItem<Contact[]>("contacts")) || [];
   if (query) {
-    contacts = matchSorter(contacts, query);
+    const options = { keys: ["first", "last"] as (keyof Contact)[] };
+    contacts = matchSorter(contacts, query, options);
   }
   return contacts.sort(sortBy("last", "createdAt"));
 };
-
 export const createContact = async (): Promise<Contact> => {
   await fakeNetwork();
   const id = Math.random().toString(36).substring(2, 9);
