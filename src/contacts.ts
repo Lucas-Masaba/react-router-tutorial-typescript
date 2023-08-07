@@ -1,4 +1,5 @@
 import localforage from "localforage";
+/// Match sorter is just terrible with vite
 import matchSorter from "match-sorter";
 import sortBy from "sort-by";
 
